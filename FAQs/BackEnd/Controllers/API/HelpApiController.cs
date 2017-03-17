@@ -1,9 +1,9 @@
 ﻿using Microsoft.Practices.Unity;
-using Sabio.Web.Domain;
-using Sabio.Web.Models.Requests;
-using Sabio.Web.Models.Responses;
-using Sabio.Web.Services;
-using Sabio.Web.Services.Interfaces;
+using App.Web.Domain;
+using App.Web.Models.Requests;
+using App.Web.Models.Responses;
+using App.Web.Services;
+using App.Web.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,7 @@ namespace Web.Controllers.Api
 {
     [RoutePrefix("api/help")]
     public class HelpApiController : ApiController
-    {
+    {	
         [Dependency]
         public IHelpService _HelpService { get; set; }
 
@@ -71,7 +71,6 @@ namespace Web.Controllers.Api
         [Route(), HttpGet]
         public HttpResponseMessage GetHelp()
         {
-
             ItemsResponse<Help> response = new ItemsResponse<Help>();
 
             List<Help> HelpList = _HelpService.GetAllFaqs();
@@ -84,7 +83,6 @@ namespace Web.Controllers.Api
         [Route("{Id:int}"), HttpGet]
         public HttpResponseMessage GetHelpById(int Id)
         {
-
             ItemResponse<Help> response = new ItemResponse<Help>();
 
             Help FaqItem = _HelpService.GetFaqById(Id);

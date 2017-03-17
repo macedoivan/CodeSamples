@@ -33,7 +33,6 @@ namespace Web.Controllers.Api
             response.Item = id;
 
             return Request.CreateResponse(HttpStatusCode.OK, response);
-
         }
 
         [Route("order"), HttpPut]
@@ -108,7 +107,6 @@ namespace Web.Controllers.Api
         [Route("website/{WebsiteId:int}"), HttpGet]
         public HttpResponseMessage GetHelpByWebId(int WebsiteId)
         {
-
             ItemsResponse<Help> response = new ItemsResponse<Help>();
 
             List<Help> FaqItem = _HelpService.GetAllByWebId(WebsiteId);

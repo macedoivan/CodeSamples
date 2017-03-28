@@ -1,0 +1,90 @@
+<input type="hidden" id="hiddenWebsiteId" value="@Model.Item" />
+
+<div class="container">
+    <div class="row">
+        <div ng-controller="helpController as help">
+            <div class="card">
+                <div class="card-header">
+                    <button ng-click="help.showFaqForm()" class="btn pull-right btn-primary">Add New F.A.Q.</button>
+                    <h2>F.A.Q. Manager</h2>
+                </div>
+                <div class="card-body card-padding fx-fade-up fx-speed-350" ng-if="help.faqFormVisible">
+                    <form role="form" name="help.faqForm" ng-submit="help.submitFaq(help.faqForm.$valid)" novalidate>
+                        <div class="form-group" ng-class="{'has-error' : help.faqForm.question.$error.required && !help.faqForm.question.$pristine || help.faqForm.question.$error.minlength}">
+                            <div class="fg-line">
+                                <label for="message4">Question</label>
+                                <textarea ng-model="help.selectedFaq.question" name="question" class="form-control input-sm" rows="3" ng-minlength="10" required></textarea>
+                                <p ng-show="help.faqForm.question.$error.required && !help.faqForm.question.$pristine"
+                                   class="help-block">Question required.</p>
+                                <p ng-show="help.faqForm.question.$error.minlength"
+                                   class="help-block">Enter 10 or more characters.</p>
+                            </div>
+                        </div>
+                        <div class="form-group" ng-class="{'has-error' : help.faqForm.answer.$error.required && !help.faqForm.answer.$pristine || help.faqForm.answer.$error.minlength}">
+                            <div class="fg-line">
+                                <label for="message4">Answer</label>
+                                <text-angular name="answer" ng-model="help.selectedFaq.answer" ng-minlength="20" required></text-angular>
+                                <p ng-show="help.faqForm.answer.$error.required && !help.faqForm.question.$pristine"
+                                   class="help-block">Answer required.</p>
+                                <p ng-show="help.faqForm.answer.$error.minlength"
+                                   class="help-block">Enter 20 or more characters.</p>
+
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-m m-t-10 waves-effect" ng-disabled="help.faqForm.$invalid">Submit</button>
+                        <button ng-click="help.resetFaqForm()" class="btn btn-primary btn-m m-t-10 waves-effect">Cancel</button>
+                    </form>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped helpTable">
+                        <thead>
+                            <tr>
+                                <th class="col-md-8">Question/Answer</th>
+                                @*<th class="col-md-1">Answer</th>*@
+                                <th class="col-md-2">Edit</th>
+                                <th class="col-md-2">Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody dnd-list="help.items">
+                            <tr class="faq-post ui-state-default"
+                                data-jobid=""
+                                data-ng-repeat="faq in help.items"
+                                dnd-draggable="faq"
+                                dnd-effect-allowed="move"
+                                dnd-moved="help.onSort($index)"
+                                dnd-dragstart="help.logEvent('Started to drag an item.')"
+                                dnd-dragend="help.logEvent('Drag operation has ended.')">
+                                <td><a ng-click="help.openAnswerModal(faq)">{{faq.question}}</a></td>
+                                @*<td><a ng-click="help.openAnswerModal(faq)"><i class="zmdi zmdi-eye zmdi-hc-2x animated"></i></a></td>*@
+                                <td><a ng-click="help.selectFaq(faq)"><i class="zmdi zmdi-edit zmdi-hc-2x animated"></i></a>  </td>
+                                <td><a ng-click="help.openModal(faq)"><i class="zmdi zmdi-delete zmdi-hc-2x animated"></i></a> </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<script type="text/ng-template" id="modalContent.html">
+    <div class="modal-header">
+        <h3 class="modal-title">Are you sure?</h3>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-danger" ng-click="mc.triggerDelete()">Yes</button>
+        <button class="btn btn-primary" ng-click="mc.cancel()">Cancel</button>
+    </div>
+</script>
+
+<script type="text/ng-template" id="answerModalContent.html">
+    <div class="modal-header"></div>
+    <div class="modal-body">
+        <p ng-bind-html="amc.currentFaq.answer"></p>
+    </div>
+    <div class="modal-footer">
+        <button ng-click="amc.cancel()" class="btn btn-primary btn-block waves-effect">Close</button>
+    </div>
+</script>

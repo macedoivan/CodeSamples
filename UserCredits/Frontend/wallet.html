@@ -1,0 +1,24 @@
+<div class="pmb-block">
+    <div class="pmbb-header">
+        <h2>You have {{wallet.creditsInfo.total}} credits!</h2>
+        <div ng-if="wallet.creditsInfo.total > 0">Want more credits? <a ng-href="#/referral">Refer a friend</a>!</div>
+        <div ng-if="wallet.creditsInfo.total <= 0">Want some credits? <a ng-href="#/referral">Refer a friend</a>!</div>
+    </div>
+    <div class="table">
+        <table class="table table-striped bootgrid-table">
+            <thead>
+                <tr>
+                    <th>Transaction</th>
+                    <th>Transaction Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="item in wallet.creditsInfo.items" >
+                    <td ng-if="item.amount > 0">You were awarded {{item.amount}} credits.</td>
+                    <td ng-if="item.amount < 0">You spent {{item.amount | negToPos}} credits.</td>
+                    <td>{{item.dateAdded | utcToLocal:"MM/dd/yyyy 'at' h:mma"}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

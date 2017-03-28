@@ -1,0 +1,414 @@
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_BringProLayout.cshtml";
+}
+
+
+
+<div class="container" ng-controller="usercreditsController as credits">
+    <div class="row">
+        <div class="card">
+            <div class="card-header">
+                <h2>Credits Manager</h2>
+            </div>
+            <div class="card-body card-padding">
+                <div class="row">
+                    <form role="form" name="creditsForm" ng-submit="credits.submitCredits()" novalidate>
+                        <div class="col-md-4">
+                            <p class="c-black f-500 m-b-20">Users</p>
+                            <div class="form-group">
+                                <div class="fg-line">
+                                    <div class="select">
+                                        <select name="usersDropdown" class="form-control" ng-model="credits.userData.userId">
+                                            <option value="" selected disabled>Select a User</option>
+                                            <option ng-repeat="user in credits.users" ng-value="user.userId">{{user.firstName}} {{user.lastName}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="c-black f-500 m-b-20">Transaction Type</p>
+                            <div class="form-group">
+                                <div class="fg-line">
+                                    <div class="select">
+                                        <select name="transType" class="form-control" ng-model="credits.userData.transactionType">
+                                            <option value="" selected disabled>Select an Option</option>
+                                            <option>Add</option>
+                                            <option>Subtract</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <p class="c-black f-500 m-b-20">Amount</p>
+                            <div class="form-group">
+                                <div class="fg-line">
+                                    <input name="amount" ng-model="credits.userData.amount" type="text" class="form-control" placeholder="Enter an amount" required>
+                                 </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <p class="c-black f-500 m-b-20">Submit</p>
+                            <button type="submit" class="btn btn-primary btn-sm m-t-10 waves-effect" ng-disabled="credits.creditsForm.$invalid">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h2>All Transactions</h2>
+            </div>
+            <div class="card-body">
+                <div id="data-table-basic-header" class="bootgrid-header container-fluid">
+                    <div class="col-sm-12 actionBar">
+                        <div class="row">
+                            <div class="search form-group col-sm-6">
+                                <div class="input-group">
+                                    <span class="zmdi icon input-group-addon glyphicon-search"></span>
+                                    <input name="searchBox" id="search_box" type="text" class="search-field form-control" placeholder="Search">
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <button ng-click="credits.searchUsers()" class="btn btn-sm btn-primary" id="search_button">Search</button>
+                                <button ng-click="credits.cancelSearch()" class="btn btn-sm btn-primary">Cancel</button>
+                            </div>
+                        </div>
+                        <table id="data-table-basic" class="table table-striped bootgrid-table" aria-busy="false">
+                            <thead>
+                                <tr>
+                                    <th>Name (Click to view balance)</th>
+                                    <th>Transaction</th>
+                                    <th>Transcation ID</th>
+                                    <th>Job ID</th>
+                                    <th>Date Added</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr dir-paginate="transaction in credits.transactions | itemsPerPage: credits.transactionsPayload.itemsPerPage | filter: search" total-items="credits.transactionsPayload.totalItems" current-page="credits.transactionsPayload.currentPage">
+                                    <td><a ng-click="credits.openModal(transaction)">{{transaction.user.firstName}} {{transaction.user.lastName}}</a></td>
+                                    <td>{{transaction.amount | currency}}</td>
+                                    <td>{{transaction.transactionId}}</td>
+                                    <td>{{transaction.jobId}}</td>
+                                    <td>{{transaction.dateAdded | utcToLocal:"MM/dd/yyyy 'at' h:mma"}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div id="data-table-command-footer" class="bootgrid-footer container-fluid">
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <dir-pagination-controls class="pagination-sm pull-left" on-page-change="credits.pageChanged(newPageNumber)" direction-links="false" boundary-links="true"></dir-pagination-controls>
+                                </div>
+                                <div class="col-sm-4 infoBar">
+                                    <div class="infos"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script type="text/ng-template" id="balanceModal.html">
+    <div class="modal-header">
+        <h3 class="modal-title">Balance:</h3>
+    </div>
+    <div class="modal-body">
+        <p>{{bmc.balance | currency}}</p>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" ng-click="bmc.cancel()">Close</button>
+    </div>
+</script>
+
+    @section pageInitScripts {
+
+        <script src="~/Assets/bower_components/angularUtils-pagination/dirPagination.js"></script>
+        <script src="~/Assets/Themes/bringpro/js/modules/App.module.dirPagination.js"></script>
+
+    }
+
+    @section scripts {
+
+        <script src="~/Assets/App/Services/App.services.usercredits.js"></script>
+
+        <script src="~/Assets/App/Services/App.services.adminusers.js"></script>
+<script src="~/Assets/Themes/bringpro/js/filters/App.filters.utcToLocal.js"></script>
+        <script type="text/javascript">
+
+            //  all members must be wrapped in an IIFE: https://github.com/johnpapa/angular-styleguide#iife
+            (function () {
+                "use strict";
+
+                //  APPNAME is a type of variable called a "constant" because it never changes. it is defined in _LayoutAlternate.cshtml
+                //  service is implemented as a factory: https://github.com/johnpapa/angular-styleguide#style-y040
+                angular.module(APPNAME)
+                    .factory('$usercreditsService', usercreditsServiceFactory);
+
+                //  manually identify dependencies for injection: https://github.com/johnpapa/angular-styleguide#style-y091
+                //  $App is a reference to App.page object. App.page is created in App.js
+                usercreditsServiceFactory.$inject = ['$baseService', '$App'];
+
+                function usercreditsServiceFactory($baseService, $App) {
+                    //  App.page has been injected as $App so we can reference anything that is attached to App.page here
+                    var aAppServiceObject = App.services.usercredits;
+
+                    //  merge the jQuery object with the angular base service to simulate inheritance
+                    var newService = $baseService.merge(true, {}, aAppServiceObject, $baseService);
+
+                    return newService;
+                }
+            })();
+
+            //  all members must be wrapped in an IIFE: https://github.com/johnpapa/angular-styleguide#iife
+            (function () {
+                "use strict";
+
+                //  APPNAME is a type of variable called a "constant" because it never changes. it is defined in _LayoutAlternate.cshtml
+                //  service is implemented as a factory: https://github.com/johnpapa/angular-styleguide#style-y040
+                angular.module(APPNAME)
+                    .factory('$AdminUserService', adminUserServiceFactory);
+
+                //  manually identify dependencies for injection: https://github.com/johnpapa/angular-styleguide#style-y091
+                //  $App is a reference to App.page object. App.page is created in App.js
+                adminUserServiceFactory.$inject = ['$baseService', '$App'];
+
+                function adminUserServiceFactory($baseService, $App) {
+                    //  App.page has been injected as $App so we can reference anything that is attached to App.page here
+                    var aAppServiceObject = App.services.adminUsers;
+
+                    //  merge the jQuery object with the angular base service to simulate inheritance
+                    var newService = $baseService.merge(true, {}, aAppServiceObject, $baseService);
+
+                    return newService;
+                }
+            })();
+
+            (function () {
+                "use strict";
+
+                angular.module(APPNAME)
+                    .controller('usercreditsController', UsercreditsController)
+                .filter('utcToLocal', Filter);
+
+                UsercreditsController.$inject = ['$scope', '$baseController', "$usercreditsService", "$AdminUserService", '$uibModal'];
+
+                function UsercreditsController(
+                    $scope
+                    , $baseController
+                    , $usercreditsService
+                    , $AdminUserService
+                    , $uibModal) {
+
+                    //  controllerAs with vm syntax: https://github.com/johnpapa/angular-styleguide#style-y032
+                    var vm = this;//this points to a new {}
+                    vm.users = null;
+                    vm.transactions = null;
+                    vm.userData = null;
+                    vm.currentUser = null;
+                    //vm.userId = null;
+                    //vm.transactionId = null;
+                    //vm.jobId = null;
+                    vm.usersPayload = { currentPage: 1, itemsPerPage: 10, totalItems: 0 };
+                    vm.transactionsPayload = { currentPage: 1, itemsPerPage: 10, totalItems: 0 };
+                    vm.$usercreditsService = $usercreditsService;
+                    vm.$AdminUserService = $AdminUserService;
+                    vm.$scope = $scope;
+                    vm.$uibModal = $uibModal;
+                    //  bindable members (functions) always go up top while the "meat" of the functions go below: https://github.com/johnpapa/angular-styleguide#style-y033
+                    vm.getUserId = _getUserId;
+                    vm.submitCredits = _submitCredits
+                    vm.pageChanged = _pageChanged;
+                    vm.searchUsers = _searchUsers;
+                    vm.cancelSearch = _cancelSearch;
+                    vm.openModal = _openModal;
+                   
+                    //-- this line to simulate inheritance
+                    $baseController.merge(vm, $baseController);
+
+                    //this is a wrapper for our small dependency on $scope
+                    vm.notify = vm.$AdminUserService.getNotifier($scope);
+
+                    //this is like the App.startUp function
+                    initialize();
+
+                    function initialize() {
+                        //  defer data operations into an external service: https://github.com/johnpapa/angular-styleguide#style-y035
+                        vm.$AdminUserService.getUsers(vm.usersPayload, _receiveUsers, _onError);
+                        // vm.$usercreditsService.get(_receiveTransactions, _onError);
+                        vm.$usercreditsService.getPaginated(vm.transactionsPayload, _receiveTransactions, _onError);
+                    }
+
+                    function _receiveUsers(data) {
+                        //this receives the data and calls the special
+                        //notify method that will trigger ng to refresh UI
+                        vm.notify(function () {
+                            vm.users = data.items;
+                        });
+                        console.log("Users retrieved: ", vm.users)
+                    }
+
+                    function _receiveTransactions(data) {
+                        vm.notify(function () {
+                            vm.transactions = data.items;
+                            vm.transactionsPayload.totalItems = data.totalItems;
+
+                            var firstNumber = ((vm.transactionsPayload.currentPage - 1) * vm.transactionsPayload.itemsPerPage) + 1;
+
+                            if (vm.transactionsPayload.currentPage * 10 < vm.transactionsPayload.totalItems) {
+                                var secondNumber = (vm.transactionsPayload.currentPage * vm.transactionsPayload.itemsPerPage);
+                                $('.infos').text('Showing ' + firstNumber + ' ' + 'to ' + secondNumber + ' ' + 'of ' + vm.transactionsPayload.totalItems);
+                            } else {
+                                var secondNumber = vm.transactionsPayload.totalItems;
+                                $('.infos').text('Showing ' + firstNumber + ' ' + 'to ' + secondNumber);
+                            }
+                        })
+                        console.log("Transactions retrieved: ", vm.transactions);
+
+                    }
+
+                    function _searchUsers() {
+                        vm.transactionsPayload.Query = $('#search_box').val();
+                        //initialize();
+                        vm.$usercreditsService.getPaginated(vm.transactionsPayload, _receiveTransactions, _onError);
+
+                    }
+
+                    function _cancelSearch() {
+                        vm.transactionsPayload.Query = null;
+                        vm.$usercreditsService.getPaginated(vm.transactionsPayload, _receiveTransactions, _onError);
+                    }
+
+                    function _pageChanged(newPage) {
+                        vm.transactionsPayload.currentPage = newPage;
+                        //initialize();
+                        vm.$usercreditsService.getPaginated(vm.transactionsPayload, _receiveTransactions, _onError);
+
+                    };
+
+                    function _getUserId(userId) {
+                        vm.currentUser = userId;
+                        console.log("User ID selected", userId);
+
+                        vm.$usercreditsService.getByUserId(userId, _getBalanceSuccess, _onError);
+
+                    }
+
+                    function _getBalanceSuccess(data) {
+                        vm.balance = data.item.amount;
+                        console.log("Balance: ", vm.balance);
+                    }
+
+                    function _submitCredits() {
+
+                       
+                            var payLoad = vm.userData;
+                            // payLoad.transactionId = vm.transactionId;
+                            // payLoad.jobId = vm.jobId;
+                            console.log("user id:", payLoad.userId);
+                            console.log("my payload: ", payLoad);
+                            vm.$usercreditsService.insert(payLoad, _onSuccess, _onError);
+                       
+                    }
+
+                    function _onSuccess(data) {
+                        console.log("Transaction successful.")
+                        vm.$usercreditsService.getPaginated(vm.transactionsPayload, _receiveTransactions, _onError);
+                        vm.$alertService.success("Transaction Complete.")
+                    };
+
+                    function _onError(jqXhr, error) {
+                        console.error(error);
+
+                    }
+
+                    function _openModal(aTransaction) {
+                        console.log("running");
+                        var modalInstance = vm.$uibModal.open({
+                            animation: true,
+                            templateUrl: 'balanceModal.html',       //  this tells it what html template to use. it must exist in a script tag OR external file
+                            controller: 'balanceModalController as bmc',    //  this controller must exist and be registered with angular for this to work
+                            size: 'sm',
+                            resolve: {  //  anything passed to resolve can be injected into the modal controller as shown below
+                                currentTransaction: function () {
+                                    return aTransaction;
+                                }
+                            }
+                        });
+
+                        //  when the modal closes it returns a promise
+                        modalInstance.result.then(function () {
+                            //  if the user closed the modal by clicking Save
+                        }, function () {
+                            console.log('Modal dismissed at: ' + new Date());   //  if the user closed the modal by clicking cancel
+                        });
+                    }
+                   
+                }
+            })();
+
+            (function () {
+                "use strict";
+
+                angular.module(APPNAME)
+                    .controller('balanceModalController', BalanceModalController);
+
+                //  $uibModalInstance is coming from the UI Bootstrap library and is a reference to the modal window itself so we can work with it
+                //  items is the array passed in from the main controller above through the resolve property
+                BalanceModalController.$inject = ['$scope', '$baseController', '$usercreditsService', '$uibModalInstance', 'currentTransaction']
+
+                function BalanceModalController(
+                    $scope
+                    , $baseController
+                    , $usercreditsService
+                    , $uibModalInstance
+                    , currentTransaction) {
+
+                    var vm = this;
+                    vm.balance = null;
+
+                    $baseController.merge(vm, $baseController);
+                    vm.$usercreditsService = $usercreditsService;
+                    vm.$scope = $scope;
+                    vm.$uibModalInstance = $uibModalInstance;
+                    vm.currentTransaction = currentTransaction;
+                    vm.cancel = _cancel;
+
+                    _getUserId();
+
+                    function _getUserId() {
+                        
+                        console.log("What's inside: ", vm.currentTransaction.userId);
+
+                        vm.$usercreditsService.getByUserId(vm.currentTransaction.userId, _getBalanceSuccess, _onError);
+
+                    }
+
+                    function _getBalanceSuccess(data) {
+                        vm.balance = data.item.amount;
+                        console.log("Balance: ", vm.balance);
+                    }
+
+                    function _onError() {
+
+                        console.log("Something went wrong.")
+                    }
+
+                    function _cancel() {
+                        vm.$uibModalInstance.dismiss('cancel');
+                    };
+
+                }
+            })();
+        </script>
+
+    }
+
+

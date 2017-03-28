@@ -1,0 +1,48 @@
+
+<div class="pmb-block">
+    <div class="pmbb-header">
+        <h2>Your Saved Addresses</h2>
+    </div>
+    <div>
+        <button ng-click="addressBook.showAddressField()" type="button" class="btn btn-primary waves-effect col-md-2">
+           Add Address
+        </button>
+        <div name="addressField" ng-if="addressBook.addressFieldVisible" class="fx-fade-left fx-speed-350">
+            <div class="form-group col-md-9">
+                <div class="fg-line">
+                    <label for="addressVal">Enter an address or business name</label>
+                    <input type="text" g-places-autocomplete ng-model="addressBook.addressComponents" name="addressVal" class="form-control input-sm" required>
+                </div>
+            </div>
+            <button ng-click="addressBook.submitForm()" type="submit" class="btn btn-success waves-effect col-md-1">Submit</button>
+        </div>
+    </div>
+    <div class="table">
+        <table class="table table-striped bootgrid-table">
+            <thead>
+                <tr>
+                    <th>Default</th>
+                    <th>Address</th>
+                    <th></th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="address in addressBook.addresses">
+                    <td>
+                        <button class="btn btn-default waves-effect"
+                                ng-class="{'btn-success' : {{address.defaultAddress}}}"
+                                ng-click="addressBook.makeDefaultAddress(address.address.addressId)" 
+                                ng-disabled="address.defaultAddress">
+                            <i class="zmdi zmdi-check"></i>
+                        </button>
+                    </td>
+                    <td>{{address.address.line1}}, {{address.address.city}}, {{address.address.state}} {{address.address.zipCode}}</td>
+                    <td><img class="img-responsive google-maps-invoice" ng-src="{{address.googleurl}}" /></td>
+                    <td><a ng-click="addressBook.openModal(address.address)"><i class="zmdi zmdi-delete zmdi-hc-2x animated waves-effect"></i></a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
